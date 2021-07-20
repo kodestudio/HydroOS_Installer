@@ -23,22 +23,43 @@ wifidct(){
 		i=$((i+1))
 	done
 	read -r  -p  'Enter your wlan network interface:' c
-	ifconfig $c up 
+	ifconfig $c up
 	if [ $?=0 ] 
 	then
+		echo "Scanning wifi network:"
+		nmcli -t -f SIGNAL,SSID device wifi list | sort -nr
 		read -rp  'enter your Wifi SSID: ' ssid
-		wifitype=("WPA" "WPA-PSK" "WEP" "OPEN WIFI" "HIDDEN WIFI")
+		wifitype=("WPA" "WPA-PSK" "WEP" "OPEN WIFI")
 		select wft in ${wifitype[@]};do
 			case $wft in
 			"WPA"|"WPA-PSK"|"WEP") read -r -p 'Enter wifi password: ' password
-									nmcli device wifi connect "${ssid}" password $password ifname $c
+									echo -n "Is it a hidden network ?? [y/n] "
+									read ans 
+									if [ ${ans}=="y" ] || [ ${ans}=="Y" ] 
+									then
+										nmcli device wifi connect "${ssid}" password  "${password}" ifname $c hidden yes
+									elif [ ${ans}=="n" ] || [ ${ans}=="N" ] 
+									then
+										nmcli device wifi connect "${ssid}" password "${password}" ifname $c
+									else
+										echo "Invalid Option! Try to config wifi again"
+										wifidct
+									fi
 									break;;
 			"OPEN WIFI")echo "Getting connect to your wifi..."
+						if [ ${ans}=="y" ] || [ ${ans}=="Y" ] 
+									then
+										nmcli device wifi connect "${ssid}" ifname $c hidden yes
+									elif [ ${ans}=="n" ] || [ ${ans}=="N" ] 
+									then
+										nmcli device wifi connect "${ssid}" ifname $c | 2&>1 >/dev/null
+									else
+										echo "Invalid Option! Try to config wifi again"
+										wifidct
+									fi
 						nmcli device wifi connect "${ssid}"  ifname $c
 						break;;
-			"HIDDEN WIFI") echo "Enter wifi password"
-			read password
-			nmcli device wifi connect "${ssid}" password $password ifname $c hidden yes;;
+						
 			*) echo "Invalid Options"
 				;;
 			esac
@@ -50,7 +71,7 @@ then
 	echo "Try again! May be your network interface doesn't exist!!!"
 	echo -n "Enter your wifi interface again: "
 	read c
-	ifconfig $c up
+	ifconfig $c up 
 	wifichk
 fi
 	}
@@ -79,7 +100,8 @@ option=("Install" "Update" "Upgrade" "Reboot" "Exit")
 select opt in ${option[*]};
 do
 case $opt in 
-"Install") install
+"Install")
+	install
 	break;;
 "Update") echo "LOL";
 	break;;
