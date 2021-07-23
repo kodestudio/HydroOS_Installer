@@ -104,9 +104,9 @@ case $opt in
 "Install")
 	install
 	break;;
-"Reboot") echo "Under maintainance"
+"Reboot") echo "Under maintainance..."
 	break;;
-"Exit") echo "Under maintainance"
+"Exit") echo "Exiting..."
 	break;;
 *) echo "Invalid option, please try again.";;
 esac
